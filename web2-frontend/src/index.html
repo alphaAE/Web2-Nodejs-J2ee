@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>index</title>
+
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+</head>
+
+<body>
+	<div class="table-responsive">
+		<table class="table" id="myTable">
+			<th></th>
+			<tr>
+				<td>用户名</td>
+				<td>邮箱</td>
+				<td>最后登录时间</td>
+			</tr>
+		</table>
+	</div>
+	<script src="js/jquery.js"></script>
+	<script type="text/javascript">
+
+		$(document).ready(function () {
+			$.ajax({
+				url: 'http://localhost/api/users',
+				// type:'get',
+				async: true,
+				dataType: 'json',
+				//crossDomain: true,
+				success: function (data) {
+					console.log(data);
+					for (var i = 0; i < data.length; i++) {
+						$('#myTable').append('<tr><td>' + data[i].username + '</td><td>' + data[i].email + '</td><td>' + data[i].last_time + '</td></tr>');
+					}
+				},
+				error: function (data) {
+					console.log(data);
+				}
+			})
+		});
+	</script>
+</body>
+
+</html>
