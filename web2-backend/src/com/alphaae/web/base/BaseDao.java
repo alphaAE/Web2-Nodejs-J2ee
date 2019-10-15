@@ -10,6 +10,7 @@ import java.util.List;
 
 public class BaseDao<T> implements Dao<T> {
     private Class<T> clazz;
+    private Connection conn;
 
     public BaseDao() {
         try {
@@ -22,27 +23,43 @@ public class BaseDao<T> implements Dao<T> {
 
     @Override
     public int add(String sql, Object... args) {
-        return 0;
+        return update(sql, args);
     }
 
     @Override
     public int update(String sql, Object... args) {
-        return 0;
+        try {
+            conn = MySQLUtil.getConnection();
+            assert conn != null;
+            int line = new QueryRunner().update(conn, sql, args);
+            MySQLUtil.close(conn);
+            return line;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     @Override
     public int delete(String sql, Object... args) {
-        return 0;
+        return update(sql, args);
     }
 
     @Override
     public T queryForBean(String sql, Object... args) {
-        return null;
+        try {
+            conn = MySQLUtil.getConnection();
+            assert conn != null;
+            List<T> list = new QueryRunner().query(conn, sql, new BeanListHandler<T>(clazz), args);
+            MySQLUtil.close(conn);
+            return list.get(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("查询出错");
+        }
     }
 
     @Override
     public List<T> queryForList(String sql, Object... args) {
-        Connection conn;
         try {
             conn = MySQLUtil.getConnection();
             assert conn != null;

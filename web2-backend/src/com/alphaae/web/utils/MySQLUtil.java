@@ -5,15 +5,16 @@ import java.sql.*;
 public class MySQLUtil {
 
     private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-    private static final String DB_URL = "jdbc:mysql://alphaae.com:3306/testdb";
+    private static final String JDBC_DRIVER_NEW = "com.mysql.cj.jdbc.Driver";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/testdb?characterEncoding=utf8&useSSL=false&serverTimezone=UTC&rewriteBatchedStatements=true";
 
-    private static final String USER = "stu";
-    private static final String PASS = "123456";
+    private static final String USER = "root";
+    private static final String PASS = "root";
 
     public static Connection getConnection() {
         Connection conn = null;
         try {
-            Class.forName(JDBC_DRIVER);
+            Class.forName(JDBC_DRIVER_NEW);
             conn = DriverManager.getConnection(DB_URL, USER, PASS);
             return conn;
         } catch (Exception e) {

@@ -8,40 +8,148 @@
 	<title>index</title>
 
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+	<script src="js/jquery.js"></script>
+	<script src="js/jquery-ui.js"></script>
 </head>
 
 <body>
+
+	<form class="form-inline">
+		<div class="form-group">
+			<label>UserName:</label>
+			<input type="text" class="form-control" id="exampleInputUserName" placeholder="name">
+		</div>
+		<div class="form-group">
+			<label>Email:</label>
+			<input type="email" class="form-control" id="exampleInputEmail" placeholder="user@example.com">
+		</div>
+		<button id="addBtn" type="button" class="btn btn-default">添加</button>
+	</form>
+
+
 	<div class="table-responsive">
 		<table class="table" id="myTable">
-			<th></th>
 			<tr>
-				<td>用户名</td>
-				<td>邮箱</td>
-				<td>最后登录时间</td>
+				<th>用户名</th>
+				<th>邮箱</th>
+				<th>最后登录时间</th>
+				<th>操作</th>
 			</tr>
 		</table>
 	</div>
-	<script src="js/jquery.js"></script>
+
+	<div id="dialog" title="修改">
+		<div class="form-group">
+			<label>UserName:</label>
+			<input type="text" class="form-control" id="exampleInputUpdateUserName" value="" disabled>
+		</div>
+		<div class="form-group">
+			<label>Email:</label>
+			<input type="email" class="form-control" id="exampleInputUpdateEmail" value="">
+		</div>
+		<button id="updateBtn" type="button" class="btn btn-info">修改</button>
+	</div>
+
 	<script type="text/javascript">
 
-		$(document).ready(function () {
+		var usersAPIUrl = "http://localhost/api/users";
+		var token = "123456";
+
+		//定义Dialog
+		$("#dialog").dialog({
+			autoOpen: false,
+		});
+
+		function loginFail() {
+			alert("用户登信息失效！");
+			window.location.href = 'login.html';
+		}
+
+		function refreshTable() {
+			$("td").parent().remove();
+			requestUsersAPI('getAll', '{}', function (data) {
+				for (var i = 0; i < data.length; i++) {
+					$('#myTable').append('<tr>' +
+						'<td id="userNameText">' + data[i].username + '</td>' +
+						'<td id="emailText">' + data[i].email + '</td>' +
+						'<td>' + data[i].last_time + '</td>' +
+						'<td>' + '<button id="updateBtn" type="button" class="btn btn-info">修改</button><button id="deleteBtn" type="button" class="btn btn-danger">删除</button>' + '</td>' +
+						'</tr>');
+				}
+			});
+
+		}
+
+		function addUser(userName, email) {
+			requestUsersAPI('add', '{\"username\" : \"' + userName + '\", \"email\" : \"' + email + '\"}', function () {
+				refreshTable();
+			});
+		}
+
+		function deleteUser(userName) {
+			requestUsersAPI('delete', '{\"username\" : \"' + userName + '\"}', function () {
+				refreshTable();
+			});
+		}
+
+		function updateUser(userName, email) {
+			requestUsersAPI('update', '{\"username\" : \"' + userName + '\", \"email\" : \"' + email + '\"}', function () {
+				refreshTable();
+			});
+		}
+
+		function requestUsersAPI(command, data, successFun) {
+			console.log(data);
 			$.ajax({
-				url: 'http://localhost/api/users',
-				// type:'get',
-				async: true,
+				type: 'post',
+				url: usersAPIUrl,
+				data: {
+					'token': token,
+					'command': command,
+					'data': data
+				},
 				dataType: 'json',
-				//crossDomain: true,
 				success: function (data) {
 					console.log(data);
-					for (var i = 0; i < data.length; i++) {
-						$('#myTable').append('<tr><td>' + data[i].username + '</td><td>' + data[i].email + '</td><td>' + data[i].last_time + '</td></tr>');
-					}
+					if (successFun != null) successFun(data);
 				},
-				error: function (data) {
-					console.log(data);
+				error: function (xhr, textStatus) {
+					if (xhr.status == 401) {
+						loginFail();
+					} else {
+						console.log(xhr);
+					}
 				}
-			})
+			});
+		}
+
+		$(document).ready(function () {
+			refreshTable();
 		});
+
+		$("#addBtn").click(function (e) {
+			addUser($("#exampleInputUserName").val(), $("#exampleInputEmail").val());
+		});
+
+		$("#myTable").on('click', '#updateBtn', function () {
+			let username = $(this).parent().parent().children("#userNameText").text();
+			let email = $(this).parent().parent().children("#emailText").text();
+			$("#exampleInputUpdateUserName").val(username);
+			$("#exampleInputUpdateEmail").val(email);
+			$("#dialog").dialog("open");
+		})
+
+		$("#myTable").on('click', '#deleteBtn', function () {
+			deleteUser($(this).parent().parent().children("#userNameText").text());
+		})
+
+		$("#updateBtn").click(function (e) {
+			updateUser($("#exampleInputUpdateUserName").val(), $("#exampleInputUpdateEmail").val());
+			$("#dialog").dialog("close");
+		});
+
+
 	</script>
 </body>
 
